@@ -1,6 +1,5 @@
 package com.hellden.aoc.aoc2023
 
-import com.hellden.aoc.aoc2023.Day03.EngineSchematic
 import com.hellden.aoc.aoc2023.Day03.EngineSchematic.*
 
 object Day03 extends Day(3):
@@ -38,32 +37,31 @@ object Day03 extends Day(3):
       .zipWithIndex
       .flatMap: (line, y) =>
         findParts(line, Position(0, y))
-    
-    val symbols: Seq[Symbol] = parts
-      .collect:
-        case s: Symbol => s
-    
-    val partNumbers: Seq[PartNumber] = parts
-      .collect:
-        case n: PartNumber => n
 
   override def part1: Long = // 529618
-    partNumbers
+
+    def hasAdjacentSymbol(partNumber: PartNumber): Boolean =
+      parts
+        .exists:
+           case s: Symbol => adjacent(s.position, partNumber)
+           case _ => false
+
+    parts
       .collect:
-        case partNumber if symbols.exists(s => adjacent(s.position, partNumber)) =>
+        case partNumber: PartNumber if hasAdjacentSymbol(partNumber) =>
           partNumber.num
       .sum
 
   override def part2: Long = // 77509019
 
     def ratioFor(gearPosition: Position): Long =
-      val adjacentPartNumbers = partNumbers
+      val adjacentPartNumbers = parts
         .collect:
-          case partNumber if adjacent(gearPosition, partNumber) =>
+          case partNumber: PartNumber if adjacent(gearPosition, partNumber) =>
             partNumber.num
       if adjacentPartNumbers.size > 1 then adjacentPartNumbers.product else 0
 
-    symbols
+    parts
       .collect:
         case Symbol('*', position) =>
           ratioFor(position)
