@@ -9,6 +9,9 @@ object Day03 extends Day(3):
     trait Part:
       def position: Position
       def length: Int
+      def adjacent(position: Position): Boolean =
+        (position.x - 1 to position.x + length).contains(position.x) &&
+        (position.y - 1 to position.y + 1).contains(position.y)
 
     case class Symbol(symbol: Char, position: Position) extends Part:
       def length = 1
@@ -29,10 +32,6 @@ object Day03 extends Day(3):
         case Some(symbol) =>
           Symbol(symbol, position) :: findParts(s.drop(1), position.move(dx = 1))
 
-    def adjacent(position: Position, part: Part): Boolean =
-      (part.position.x - 1 to part.position.x + part.length).contains(position.x) &&
-      (part.position.y - 1 to part.position.y + 1).contains(position.y)
-
     val parts: Seq[Part] = inputLines
       .zipWithIndex
       .flatMap: (line, y) =>
@@ -43,7 +42,7 @@ object Day03 extends Day(3):
     def hasAdjacentSymbol(partNumber: PartNumber): Boolean =
       parts
         .exists:
-           case s: Symbol => adjacent(s.position, partNumber)
+           case s: Symbol => partNumber.adjacent(s.position)
            case _ => false
 
     parts
@@ -57,7 +56,7 @@ object Day03 extends Day(3):
     def ratioFor(gearPosition: Position): Long =
       val adjacentPartNumbers = parts
         .collect:
-          case partNumber: PartNumber if adjacent(gearPosition, partNumber) =>
+          case partNumber: PartNumber if partNumber.adjacent(gearPosition) =>
             partNumber.num
       if adjacentPartNumbers.size > 1 then adjacentPartNumbers.product else 0
 
