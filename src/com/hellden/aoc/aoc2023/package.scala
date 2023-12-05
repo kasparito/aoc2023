@@ -1,6 +1,6 @@
 package com.hellden.aoc
 
-package object aoc2023 {
+package object aoc2023:
 
   case class Position(x: Int, y: Int):
     def move(dx: Int = 0, dy: Int = 0): Position =
@@ -42,4 +42,3 @@ package object aoc2023 {
         if value == v
       yield
         position
-}
