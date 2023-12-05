@@ -20,27 +20,26 @@ enum BinaryTree[+E : Ordering]:
       case node: Node[_] =>
         node
 
-  def find[K : Ordering, R](key: K)(using matchable: Matchable[E, K, R]): Option[R] =
+  def find[K : Ordering, R](key: K)(using matchable: Matchable[E, K]): Option[E] =
     @tailrec
-    def rec(tree: BinaryTree[E]): Option[R] =
+    def rec(tree: BinaryTree[E]): Option[E] =
       tree match
         case Empty => None
         case Node(value, left, right) =>
-          value.matching(key) match
-            case result: Some[_] =>
-              result
-            case _ if key < value.key =>
-              rec(left)
-            case _ =>
-              rec(right)
+          if value.matching(key) then
+            Some(value)
+          else if key < value.key then
+            rec(left)
+          else
+            rec(right)
     rec(this)
 
 object BinaryTree:
 
-  trait Matchable[-T, K, R]:
+  trait Matchable[-T, K]:
     extension (t: T)
       def key: K
-      def matching(k: K): Option[R]
+      def matching(k: K): Boolean
 
   def apply[T : Ordering](values: Iterable[T]): BinaryTree[T] =
     values.foldLeft[BinaryTree[T]](Empty): (tree, value) =>

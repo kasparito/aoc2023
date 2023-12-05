@@ -11,12 +11,10 @@ object Day05 extends Day(5):
     private case class Range(range: NumericRange[Long], delta: Long)
 
     private given Ordering[Range] = Ordering.by(_.range.start)
-    private given Matchable[Range, Long, Long] with
+    private given Matchable[Range, Long] with
       extension (r: Range)
         def key: Long = r.range.start
-        def matching(num: Long): Option[Long] =
-          Option.when(r.range.contains(num)):
-            num + r.delta
+        def matching(num: Long): Boolean = r.range.contains(num)
 
     private def parse: List[String] => List[BinaryTree[Range]] =
       case _ :: _ :: lines =>
@@ -32,7 +30,7 @@ object Day05 extends Day(5):
         Nil
 
     private def convert(tree: BinaryTree[Range], num: Long): Long =
-      tree.find(num).getOrElse(num)
+      tree.find(num).map(_.delta + num).getOrElse(num)
 
     private val conversions = parse(inputLines.tail.toList)
 
