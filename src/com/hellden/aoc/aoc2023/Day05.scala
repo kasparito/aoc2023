@@ -1,6 +1,6 @@
 package com.hellden.aoc.aoc2023
 
-import com.hellden.aoc.aoc2023.BinaryTree.MatchResult._
+import com.hellden.aoc.aoc2023.BinaryTree.Matchable
 
 import scala.collection.immutable.NumericRange
 
@@ -11,6 +11,12 @@ object Day05 extends Day(5):
     private case class Range(range: NumericRange[Long], delta: Long)
 
     private given Ordering[Range] = Ordering.by(_.range.start)
+    private given Matchable[Range, Long, Long] with
+      extension (r: Range)
+        def key: Long = r.range.start
+        def matching(num: Long): Option[Long] =
+          Option.when(r.range.contains(num)):
+            num + r.delta
 
     private def parse: List[String] => List[BinaryTree[Range]] =
       case _ :: _ :: lines =>
@@ -26,13 +32,7 @@ object Day05 extends Day(5):
         Nil
 
     private def convert(tree: BinaryTree[Range], num: Long): Long =
-      tree
-        .find:
-          case Range(range, _) if range.start > num => Left
-          case Range(range, _) if range.end < num => Right
-          case Range(_, delta) => Match(num + delta)
-        .getOrElse:
-          num
+      tree.find(num).getOrElse(num)
 
     private val conversions = parse(inputLines.tail.toList)
 
