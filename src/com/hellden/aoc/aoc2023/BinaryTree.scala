@@ -5,58 +5,50 @@ import com.hellden.aoc.aoc2023.BinaryTree.{Empty, Matchable, Node}
 import scala.annotation.tailrec
 import scala.math.Ordering.Implicits.infixOrderingOps
 
-enum BinaryTree[+E : Ordering]:
-  private case Empty
+enum BinaryTree[+E : Ordering](val size: Int, val depth: Int):
+  private case Empty extends BinaryTree[Nothing](0, 0)
   private case Node[+T : Ordering](
     value: T,
     left: BinaryTree[T],
-    right: BinaryTree[T],
-    depth: Int
-  ) extends BinaryTree[T]
+    right: BinaryTree[T]
+  ) extends BinaryTree[T](1 + left.depth + right.depth, 1 + math.max(left.depth, right.depth))
 
-  extension [T : Ordering](tree: BinaryTree[T])
+  private def removeMin: (BinaryTree[E], Option[E]) =
+    this match
+      case Empty => (Empty, None)
+      case Node(value, Empty, right) => (right, Some(value))
+      case node: Node[E] =>
+        val (newLeft, value) = node.left.removeMin
+        (Node(node.value, newLeft, node.right), value)
 
-    private def depth: Int =
-      tree match
-        case Empty => 0
-        case node: Node[T] => node.depth
-
-    private def removeMin: (BinaryTree[T], Option[T]) =
-      tree match
-        case Empty => (Empty, None)
-        case Node(value, Empty, right, _) => (right, Some(value))
-        case node: Node[T] =>
-          val (newLeft, value) = removeMin(node.left)
-          (Node(node.value, newLeft, node.right, math.min(depth(newLeft), depth(node.right)) + 1), value)
-
-    private def removeMax: (BinaryTree[T], Option[T]) =
-      tree match
-        case Empty => (Empty, None)
-        case Node(value, left, Empty, _) => (left, Some(value))
-        case node: Node[T] =>
-          val (newRight, value) = removeMax(node.right)
-          (Node(node.value, node.left, newRight, math.min(depth(node.left), depth(newRight)) + 1), value)
+  private def removeMax: (BinaryTree[E], Option[E]) =
+    this match
+      case Empty => (Empty, None)
+      case Node(value, left, Empty) => (left, Some(value))
+      case node: Node[E] =>
+        val (newRight, value) = node.right.removeMax
+        (Node(node.value, node.left, newRight), value)
 
   private def insert[B >: E : Ordering](value: B): BinaryTree[B] =
     this match
       case Empty =>
-        Node(value, Empty, Empty, 1)
-      case Node(nodeValue, left, right, _) if value < nodeValue =>
+        Node(value, Empty, Empty)
+      case Node(nodeValue, left, right) if value < nodeValue =>
         val (newValue, newLeft, newRight) =
-          if depth(left) - depth(right) <= 1 then
+          if left.depth - right.depth <= 1 then
             (nodeValue, left.insert(value), right)
           else
-            val (newLeft, Some(newNodeValue)) = removeMax(left.insert(value))
-            (newNodeValue, newLeft, right.insert(nodeValue))
-        Node(newValue, newLeft, newRight, math.max(depth(newLeft), depth(newRight)) + 1)
-      case Node(nodeValue, left, right, _) if value > nodeValue =>
+            val (newLeft, newNodeValue) = left.insert(value).removeMax
+            (newNodeValue.get, newLeft, right.insert(nodeValue))
+        Node(newValue, newLeft, newRight)
+      case Node(nodeValue, left, right) if value > nodeValue =>
         val (newValue, newLeft, newRight) =
-          if depth(right) - depth(left) <= 1 then
+          if right.depth - left.depth <= 1 then
             (nodeValue, left, right.insert(value))
           else
-            val (newRight, Some(newNodeValue)) = removeMin(right.insert(value))
-            (newNodeValue, left.insert(nodeValue), newRight)
-        Node(newValue, newLeft, newRight, math.max(depth(newLeft), depth(newRight)) + 1)
+            val (newRight, newNodeValue) = right.insert(value).removeMin
+            (newNodeValue.get, left.insert(nodeValue), newRight)
+        Node(newValue, newLeft, newRight)
       case node: Node[_] =>
         node
 
@@ -65,7 +57,7 @@ enum BinaryTree[+E : Ordering]:
     def rec(tree: BinaryTree[E]): Option[E] =
       tree match
         case Empty => None
-        case Node(value, left, right, _) =>
+        case Node(value, left, right) =>
           if value.matching(key) then
             Some(value)
           else if key < value.key then
