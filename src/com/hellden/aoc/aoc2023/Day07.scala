@@ -3,7 +3,7 @@ package com.hellden.aoc.aoc2023
 object Day07 extends Day(7):
 
   case class Hand(cards: String, bid: Long, sortValue: String)
-  given Ordering[Hand] = Ordering.by[Hand, String](_.sortValue)
+  given Ordering[Hand] = Ordering.by(_.sortValue)
 
   def sortValue(cards: String, cardOrder: String, joker: Option[Char]): String =
     val orderedAmounts = cards.filterNot(joker.contains).groupBy(identity).values.map(_.length).toSeq.sorted.reverse
@@ -15,7 +15,7 @@ object Day07 extends Day(7):
       case (x, _) => x * 10
     typeValue.toString + cards.map(card => ('A' + cardOrder.indexOf(card)).toChar)
 
-  def winnings(cardOrder: String, joker: Option[Char] = None): Long =
+  def winningsFor(cardOrder: String, joker: Option[Char] = None): Long =
     inputLines
       .map(_.split(' '))
       .collect { case Array(cards, bid) => Hand(cards, bid.toLong, sortValue(cards, cardOrder, joker)) }
@@ -24,7 +24,7 @@ object Day07 extends Day(7):
       .sum
 
   override def part1: Long = // 254024898
-    winnings("23456789TJQKA")
+    winningsFor(cardOrder = "23456789TJQKA")
 
   override def part2: Long = // 254115617
-    winnings("J23456789TQKA", joker = Some('J'))
+    winningsFor(cardOrder = "J23456789TQKA", joker = Some('J'))
