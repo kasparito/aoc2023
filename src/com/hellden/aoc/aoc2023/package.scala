@@ -12,6 +12,12 @@ package object aoc2023:
     case Left extends Direction(-1, 0)
     case Right extends Direction(1, 0)
 
+    def opposite = this match
+      case Up => Down
+      case Down => Up
+      case Left => Right
+      case Right => Left
+    
     def move(position: Position): Position =
       Position(position.x + dx, position.y + dy)
 
@@ -23,11 +29,11 @@ package object aoc2023:
     def isWithinBounds(x: Int, y: Int): Boolean =
       horizontalBounds.contains(x) && verticalBounds.contains(y)
     
-    def move(position: Position, direction: Direction, steps: Int = 1): Option[Position] =
+    def move(position: Position, direction: Direction, steps: Int = 1): Option[(Position, T)] =
       val x = position.x + direction.dx * steps
       val y = position.y + direction.dy * steps
       Option.when(isWithinBounds(x, y)):
-        Position(x, y)
+        (Position(x, y), grid(y)(x))
 
     def valueFor(position: Position): Option[T] =
       Option.when(isWithinBounds(position.x, position.y)):
