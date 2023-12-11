@@ -6,6 +6,9 @@ package object aoc2023:
     def move(dx: Int = 0, dy: Int = 0): Position =
       Position(x + dx, y + dy)
 
+  object Position:
+    given Ordering[Position] = Ordering.by(p => (p.x, p.y))
+  
   enum Direction(val dx: Int, val dy: Int):
     case Up extends Direction(0, -1)
     case Down extends Direction(0, 1)
